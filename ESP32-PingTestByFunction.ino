@@ -25,14 +25,48 @@ const int   daylightOffset_sec = 0;
 void connectingWifi();
 void printLocalTime();
 void ipCheck();
+void remoteHost();
+void udLink();
 void processingSig();
-void onlineStatus();
-void offlineStatus();
+void internetStatus();
 void wifiSignalQuality();
 void allOff();
 void pingTest();
 
-/////////////////////////////////////////////////
+//////////////custom char//////////////////////
+
+byte sig[] = {
+  B00000,
+  B00000,
+  B11100,
+  B00010,
+  B11001,
+  B00101,
+  B10101,
+  B00000
+};
+byte upload[] = {
+  B00100,
+  B01110,
+  B11111,
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+  B00100
+};
+byte download[] = {
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+  B11111,
+  B01110,
+  B00100
+};
+
+//////////////////////////////////////////////
 
 int singalQuality[]={100,100,100,100,100,100,100,100,100,100,100,100,100,100,
 100,100,100,100,100,100,100,99,99,99,98,98,98,97,97,96,96,95,95,94,93,93,92,
@@ -64,6 +98,10 @@ void setup()
   pinMode(green, OUTPUT);//blue
   pinMode(red, OUTPUT);//red
   pinMode(buz, OUTPUT);//buzzer
+
+  My_LCD.createChar(1, sig);
+  My_LCD.createChar(2, upload);
+  My_LCD.createChar(3, download);
   
   ledcSetup(redChannel, ledfreq, resolution);
   ledcSetup(greenChannel, ledfreq, resolution);
@@ -95,7 +133,7 @@ void setup()
   My_LCD.setCursor(5,2);
   My_LCD.print("by @MRINAL");
   delay(3000);
-  connectingWifi();
+  connectingWifi(1, 0);
   
 }
 
@@ -104,24 +142,28 @@ void loop()
   if(WiFi.status() == WL_CONNECTED)
   {
     My_LCD.clear();
-    wifiSignalQuality();
-    printLocalTime();
-    ipCheck();
+    wifiSignalQuality(15, 3);
+    ipCheck(0, 0);
+    udLink(18, 0, 1);
+    printLocalTime(0, 2);
+    remoteHost(0, 1);
     pingTest();
-    printLocalTime();
+    printLocalTime(0, 2);
+    udLink(18, 0, 2);
     delay(3000);
     allOff();
   }
   else
   {
-    connectingWifi();
+    connectingWifi(1, 0);
   }
 }
 
-void connectingWifi()
+void connectingWifi(int cWx, int cWy)
 {
     My_LCD.clear();
     ledcWrite(yellowChannel, 0);
+    My_LCD.setCursor(cWx, cWy);
     My_LCD.print("Connecting to WiFi");
     WiFi.begin(ssid, password); 
     while (WiFi.status() != WL_CONNECTED) 
@@ -132,72 +174,91 @@ void connectingWifi()
       delay(250);
     }
     ledcWrite(yellowChannel, leddutyCycle);
-    My_LCD.setCursor(5,2);
+    My_LCD.setCursor(cWx + 4, cWy + 2);
     My_LCD.print("Connected!");
-    delay(1000);
+    ipCheck(2, 3);
+    delay(2000);
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 }
 
-void printLocalTime()
+void printLocalTime(int pLTx, int pLTy)
 {
   struct tm timeinfo;
   if(!getLocalTime(&timeinfo))
   {
-    My_LCD.setCursor(0,2);
+    My_LCD.setCursor(pLTx, pLTy);
     My_LCD.print("Time Failed");
-    return;
   }
-  My_LCD.setCursor(0,2);
+  My_LCD.setCursor(pLTx, pLTy);
   My_LCD.print(&timeinfo, "%b %d %Y %H:%M:%S");
 }
 
-void ipCheck()
+void ipCheck(int iCx, int iCy)
 {
-  My_LCD.setCursor(0,0);
+  My_LCD.setCursor(iCx, iCy);
   My_LCD.print("IP: ");
-  My_LCD.setCursor(4,0);
+  My_LCD.setCursor(iCx + 4, iCy);
   My_LCD.print(WiFi.localIP());
-  My_LCD.setCursor(0,1);
+}
+
+void remoteHost(int rHx, int rHy)
+{
+  My_LCD.setCursor(rHx, rHy);
   My_LCD.print("Ping: ");
-  My_LCD.setCursor(6,1);
+  My_LCD.setCursor(rHx + 6, rHy);
   My_LCD.print(remote_host);
 }
 
-
-void processingSig()
+void processingSig(int pS)
 {
-  if(flag == 0)
+  if(pS == 1)
   {
-    ledcWrite(blueChannel, leddutyCycle);
+    ledcWrite(blueChannel, leddutyCycle);  
+  }
+  if(pS == 0)
+  {
+    ledcWrite(blueChannel, 0);
   }
 }
 
-void onlineStatus()
+void udLink(int udx, int udy, int ud){
+  if(ud == 1){
+    My_LCD.setCursor(udx, udy);
+    My_LCD.write(2);
+    My_LCD.setCursor(udx + 1, udy);
+    My_LCD.print(" ");
+  }
+  if(ud == 2){
+    My_LCD.setCursor(udx, udy);
+    My_LCD.print(" ");
+    My_LCD.setCursor(udx + 1, udy);
+    My_LCD.write(3);
+  }
+}
+
+void internetStatus(int iSx, int iSy, int iS)
 {
-      if(flag2 == 1)
+      if(iS == 1)
       {
-        My_LCD.setCursor(0,3);
-        My_LCD.print("Online MS=");
-        My_LCD.setCursor(10,3);
+        My_LCD.setCursor(iSx, iSy);
+        My_LCD.print("Online t=");
+        //My_LCD.setCursor(iSx + 10, iSy);
         My_LCD.print(pingTime,0);
+        My_LCD.print("ms");
+      }
+      if(iS == 2)
+      {
+        My_LCD.setCursor(iSx, iSy);
+        My_LCD.print("No internet");
       }
 }
 
-void offlineStatus()
-{
-      if(flag2 == 2)
-      {
-        My_LCD.setCursor(0,3);
-        My_LCD.print("No internet");
-      }   
-}
-
-void wifiSignalQuality()
+void wifiSignalQuality(int wSQx, int wSQy)
 {
       wifiRSSI = WiFi.RSSI()*(-1);
-      My_LCD.setCursor(16,3);
+      My_LCD.setCursor(wSQx, wSQy);
+      My_LCD.write(1);
       My_LCD.print(singalQuality[wifiRSSI]);
-      My_LCD.setCursor(19,3);
       My_LCD.print("%");
 }
 
@@ -206,27 +267,26 @@ void allOff()
     ledcWrite(greenChannel, 0);
     ledcWrite(redChannel, 0);
     ledcWrite(buzChannel, 0);
-    flag = 0;
+    flag = flag + 1;
 }
 
 void pingTest()
 {
-    processingSig();
-    onlineStatus();
-    offlineStatus();
+    processingSig(flag);
+    internetStatus(0, 3, flag2);
     if(Ping.ping(remote_host)) //if(Ping.ping(remote_ip)) 
     {
       pingTime = Ping.averageTime();    
-      flag = flag + 1;
+      flag = 0;
       flag2 = 1;
-      ledcWrite(blueChannel, 0);
+      processingSig(flag);
       ledcWrite(greenChannel, leddutyCycle);
     }
     else
     {  
-      flag = flag + 1;
+      flag = 0;
       flag2 = 2;
-      ledcWrite(blueChannel, 0);
+      processingSig(flag);
       ledcWrite(redChannel, leddutyCycle);
       ledcWrite(buzChannel, buzdutyCycle);
     }  
