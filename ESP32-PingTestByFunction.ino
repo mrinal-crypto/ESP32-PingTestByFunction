@@ -241,10 +241,10 @@ void internetStatus(int iSx, int iSy, int iS)
       if(iS == 1)
       {
         My_LCD.setCursor(iSx, iSy);
-        My_LCD.print("Online t=");
+        My_LCD.print("Online ");
         //My_LCD.setCursor(iSx + 10, iSy);
         My_LCD.print(pingTime,0);
-        My_LCD.print("ms");
+        My_LCD.print(" ms");
       }
       if(iS == 2)
       {
