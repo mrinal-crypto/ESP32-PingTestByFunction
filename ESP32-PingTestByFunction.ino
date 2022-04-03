@@ -35,16 +35,17 @@ void pingTest();
 
 //////////////custom char//////////////////////
 
-byte sig[] = {
-  B00000,
-  B00000,
-  B11100,
-  B00010,
-  B11001,
-  B00101,
-  B10101,
-  B00000
-};
+//byte sig[] = {
+//  B00000,
+//  B00000,
+//  B11100,
+//  B00010,
+//  B11001,
+//  B00101,
+//  B10101,
+//  B00000
+//};
+
 byte upload[] = {
   B00100,
   B01110,
@@ -80,15 +81,15 @@ int wifiRSSI = 0;
 float pingTime = 0;
 
 const int ledfreq = 5000;
-const int buzfreq = 1000;
+//const int buzfreq = 1000;
 const int leddutyCycle = 80;
-const int buzdutyCycle = 0;
+//const int buzdutyCycle = 0;
 
 const int redChannel = 3;
 const int greenChannel = 2;
 const int blueChannel = 1;
 const int yellowChannel = 0;
-const int buzChannel = 4;
+//const int buzChannel = 4;
 const int resolution = 8;
 
 void setup() 
@@ -99,7 +100,7 @@ void setup()
   pinMode(red, OUTPUT);//red
   pinMode(buz, OUTPUT);//buzzer
 
-  My_LCD.createChar(1, sig);
+//  My_LCD.createChar(1, sig);
   My_LCD.createChar(2, upload);
   My_LCD.createChar(3, download);
   
@@ -107,32 +108,32 @@ void setup()
   ledcSetup(greenChannel, ledfreq, resolution);
   ledcSetup(blueChannel, ledfreq, resolution);
   ledcSetup(yellowChannel, ledfreq, resolution);
-  ledcSetup(buzChannel, buzfreq, resolution);
+//  ledcSetup(buzChannel, buzfreq, resolution);
 
   ledcAttachPin(green, greenChannel);
   ledcAttachPin(red, redChannel);
   ledcAttachPin(blue, blueChannel);
   ledcAttachPin(yellow, yellowChannel);
-  ledcAttachPin(buz, buzChannel);
+//  ledcAttachPin(buz, buzChannel);
   
-  ledcWrite(buzChannel, 250);
+  digitalWrite(buz, HIGH);
   delay(1000);
-  ledcWrite(buzChannel, 0);
+  digitalWrite(buz, LOW);
   for(int i = 0; i<=3; i++)
   {
     ledcWrite(i, 250);
-    delay(250);
+    delay(200);
     ledcWrite(i, 0);
-    delay(250);
+    delay(200);
   }
   
   My_LCD.begin(20, 4);
   My_LCD.clear();
   My_LCD.setCursor(3,1);
   My_LCD.print("ESP PING-MASTER");
-  My_LCD.setCursor(5,2);
-  My_LCD.print("by @MRINAL");
-  delay(3000);
+  My_LCD.setCursor(6,2);
+  My_LCD.print("by MRINAL");
+  delay(5000);
   connectingWifi(1, 0);
   
 }
@@ -142,7 +143,7 @@ void loop()
   if(WiFi.status() == WL_CONNECTED)
   {
     My_LCD.clear();
-    wifiSignalQuality(15, 3);
+    wifiSignalQuality(16, 3);
     ipCheck(0, 0);
     udLink(18, 0, 1);
     printLocalTime(0, 2);
@@ -169,15 +170,17 @@ void connectingWifi(int cWx, int cWy)
     while (WiFi.status() != WL_CONNECTED) 
     {
       ledcWrite(blueChannel, leddutyCycle);
-      delay(250);
+      delay(200);
       ledcWrite(blueChannel, 0);
-      delay(250);
+      delay(200);
     }
     ledcWrite(yellowChannel, leddutyCycle);
-    My_LCD.setCursor(cWx + 4, cWy + 2);
-    My_LCD.print("Connected!");
-    ipCheck(2, 3);
-    delay(2000);
+    My_LCD.setCursor(cWx, cWy + 1);
+    My_LCD.print("Connected to SSID");
+    My_LCD.setCursor(cWx, cWy + 2);
+    My_LCD.print(ssid);
+    ipCheck(1, 3);
+    delay(5000);
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 }
 
@@ -190,7 +193,7 @@ void printLocalTime(int pLTx, int pLTy)
     My_LCD.print("Time Failed");
   }
   My_LCD.setCursor(pLTx, pLTy);
-  My_LCD.print(&timeinfo, "%b %d %Y %H:%M:%S");
+  My_LCD.print(&timeinfo, "  %H:%M  %d.%b.%y"); //Y=2022, %S=sec
 }
 
 void ipCheck(int iCx, int iCy)
@@ -204,9 +207,9 @@ void ipCheck(int iCx, int iCy)
 void remoteHost(int rHx, int rHy)
 {
   My_LCD.setCursor(rHx, rHy);
-  My_LCD.print("Ping: ");
-  My_LCD.setCursor(rHx + 6, rHy);
-  My_LCD.print(remote_host);
+  My_LCD.print("Ping ");
+  My_LCD.print(remote_ip);  //My_LCD.print(remote_host);
+  My_LCD.print(" -t");
 }
 
 void processingSig(int pS)
@@ -243,7 +246,7 @@ void internetStatus(int iSx, int iSy, int iS)
         My_LCD.setCursor(iSx, iSy);
         My_LCD.print("Online ");
         //My_LCD.setCursor(iSx + 10, iSy);
-        My_LCD.print(pingTime,0);
+        My_LCD.print(pingTime, 0);
         My_LCD.print(" ms");
       }
       if(iS == 2)
@@ -257,7 +260,7 @@ void wifiSignalQuality(int wSQx, int wSQy)
 {
       wifiRSSI = WiFi.RSSI()*(-1);
       My_LCD.setCursor(wSQx, wSQy);
-      My_LCD.write(1);
+      //My_LCD.write(1);
       My_LCD.print(singalQuality[wifiRSSI]);
       My_LCD.print("%");
 }
@@ -266,15 +269,15 @@ void allOff()
 {
     ledcWrite(greenChannel, 0);
     ledcWrite(redChannel, 0);
-    ledcWrite(buzChannel, 0);
-    flag = flag + 1;
+//    ledcWrite(buzChannel, 0);
 }
 
 void pingTest()
 {
+    flag = 1;
     processingSig(flag);
     internetStatus(0, 3, flag2);
-    if(Ping.ping(remote_host)) //if(Ping.ping(remote_ip)) 
+    if(Ping.ping(remote_ip)) //if(Ping.ping(remote_ip)) remote_host
     {
       pingTime = Ping.averageTime();    
       flag = 0;
@@ -288,6 +291,6 @@ void pingTest()
       flag2 = 2;
       processingSig(flag);
       ledcWrite(redChannel, leddutyCycle);
-      ledcWrite(buzChannel, buzdutyCycle);
+//      ledcWrite(buzChannel, buzdutyCycle);
     }  
 }
