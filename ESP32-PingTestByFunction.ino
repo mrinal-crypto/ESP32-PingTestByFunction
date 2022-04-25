@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <ESP32Ping.h>
+#include <WiFiManager.h>
 #include "time.h"
 #include <LiquidCrystal.h>
 LiquidCrystal My_LCD(13, 12, 14, 27, 26, 25);
@@ -9,10 +10,6 @@ LiquidCrystal My_LCD(13, 12, 14, 27, 26, 25);
 #define red 16
 #define buz 17
 
-///////wifi credentials////////////////////
-
-const char* ssid     = "MRINAL";
-const char* password = "mrinal maity";
 
 const IPAddress remote_ip(8, 8, 8, 8);
 const char* remote_host = "www.google.com";
@@ -92,93 +89,51 @@ const int yellowChannel = 0;
 //const int buzChannel = 4;
 const int resolution = 8;
 
-void setup() 
-{
-  pinMode(yellow, OUTPUT);//yellow
-  pinMode(blue, OUTPUT);//green
-  pinMode(green, OUTPUT);//blue
-  pinMode(red, OUTPUT);//red
-  pinMode(buz, OUTPUT);//buzzer
 
-//  My_LCD.createChar(1, sig);
-  My_LCD.createChar(2, upload);
-  My_LCD.createChar(3, download);
-  
-  ledcSetup(redChannel, ledfreq, resolution);
-  ledcSetup(greenChannel, ledfreq, resolution);
-  ledcSetup(blueChannel, ledfreq, resolution);
-  ledcSetup(yellowChannel, ledfreq, resolution);
-//  ledcSetup(buzChannel, buzfreq, resolution);
-
-  ledcAttachPin(green, greenChannel);
-  ledcAttachPin(red, redChannel);
-  ledcAttachPin(blue, blueChannel);
-  ledcAttachPin(yellow, yellowChannel);
-//  ledcAttachPin(buz, buzChannel);
-  
-  digitalWrite(buz, HIGH);
-  delay(1000);
-  digitalWrite(buz, LOW);
-  for(int i = 0; i<=3; i++)
-  {
-    ledcWrite(i, 250);
-    delay(200);
-    ledcWrite(i, 0);
-    delay(200);
-  }
-  
-  My_LCD.begin(20, 4);
-  My_LCD.clear();
-  My_LCD.setCursor(3,1);
-  My_LCD.print("ESP PING-MASTER");
-  My_LCD.setCursor(6,2);
-  My_LCD.print("by MRINAL");
-  delay(5000);
-  connectingWifi(1, 0);
-  
-}
-
-void loop() 
-{
-  if(WiFi.status() == WL_CONNECTED)
-  {
-    My_LCD.clear();
-    wifiSignalQuality(16, 3);
-    ipCheck(0, 0);
-    udLink(18, 0, 1);
-    printLocalTime(0, 2);
-    remoteHost(0, 1);
-    pingTest();
-    printLocalTime(0, 2);
-    udLink(18, 0, 2);
-    delay(3000);
-    allOff();
-  }
-  else
-  {
-    connectingWifi(1, 0);
-  }
-}
 
 void connectingWifi(int cWx, int cWy)
 {
+
+    WiFiManager wm;    
+     
+
+  
     My_LCD.clear();
     ledcWrite(yellowChannel, 0);
     My_LCD.setCursor(cWx, cWy);
     My_LCD.print("Connecting to WiFi");
-    WiFi.begin(ssid, password); 
-    while (WiFi.status() != WL_CONNECTED) 
-    {
-      ledcWrite(blueChannel, leddutyCycle);
-      delay(200);
-      ledcWrite(blueChannel, 0);
-      delay(200);
-    }
+    WiFi.disconnect();
+    
+    bool success = false;
+    
+    while(!success) {
+        ledcWrite(blueChannel, leddutyCycle);
+        wm.setConfigPortalTimeout(30);
+        success = wm.autoConnect("PING MASTER");    
+        if(!success){
+          ledcWrite(blueChannel, 0);
+          My_LCD.setCursor(cWx, cWy + 1);
+          My_LCD.print("Failed!");
+          My_LCD.setCursor(cWx, cWy + 2);
+          My_LCD.print("AP - PING MASTER");
+          My_LCD.setCursor(cWx, cWy + 3);
+          My_LCD.print("SetupIP-192.168.4.1");
+        }      
+    } 
+
+
+    String ssid = WiFi.SSID();
+    
     ledcWrite(yellowChannel, leddutyCycle);
     My_LCD.setCursor(cWx, cWy + 1);
-    My_LCD.print("Connected to SSID");
+    My_LCD.print("Connected");
+    My_LCD.setCursor(cWx, cWy + 2);
+    My_LCD.print("                ");
     My_LCD.setCursor(cWx, cWy + 2);
     My_LCD.print(ssid);
+    My_LCD.setCursor(cWx, cWy + 3);
+    My_LCD.print("                   ");
+
     ipCheck(1, 3);
     delay(5000);
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
@@ -207,9 +162,9 @@ void ipCheck(int iCx, int iCy)
 void remoteHost(int rHx, int rHy)
 {
   My_LCD.setCursor(rHx, rHy);
-  My_LCD.print("Ping ");
-  My_LCD.print(remote_ip);  //My_LCD.print(remote_host);
-  My_LCD.print(" -t");
+  My_LCD.print("Ping: ");
+  My_LCD.print(remote_host);  //My_LCD.print(remote_host);
+//  My_LCD.print(" -t");
 }
 
 void processingSig(int pS)
@@ -277,7 +232,7 @@ void pingTest()
     flag = 1;
     processingSig(flag);
     internetStatus(0, 3, flag2);
-    if(Ping.ping(remote_ip)) //if(Ping.ping(remote_ip)) remote_host
+    if(Ping.ping(remote_host)) //if(Ping.ping(remote_ip)) remote_host
     {
       pingTime = Ping.averageTime();    
       flag = 0;
@@ -293,4 +248,76 @@ void pingTest()
       ledcWrite(redChannel, leddutyCycle);
 //      ledcWrite(buzChannel, buzdutyCycle);
     }  
+}
+
+void setup() 
+{
+
+  Serial.begin(115200);
+  
+  pinMode(yellow, OUTPUT);//yellow
+  pinMode(blue, OUTPUT);//green
+  pinMode(green, OUTPUT);//blue
+  pinMode(red, OUTPUT);//red
+  pinMode(buz, OUTPUT);//buzzer
+
+//  My_LCD.createChar(1, sig);
+  My_LCD.createChar(2, upload);
+  My_LCD.createChar(3, download);
+  
+  ledcSetup(redChannel, ledfreq, resolution);
+  ledcSetup(greenChannel, ledfreq, resolution);
+  ledcSetup(blueChannel, ledfreq, resolution);
+  ledcSetup(yellowChannel, ledfreq, resolution);
+//  ledcSetup(buzChannel, buzfreq, resolution);
+
+  ledcAttachPin(green, greenChannel);
+  ledcAttachPin(red, redChannel);
+  ledcAttachPin(blue, blueChannel);
+  ledcAttachPin(yellow, yellowChannel);
+//  ledcAttachPin(buz, buzChannel);
+  
+  digitalWrite(buz, HIGH);
+  delay(1000);
+  digitalWrite(buz, LOW);
+  for(int i = 0; i<=3; i++)
+  {
+    ledcWrite(i, 250);
+    delay(200);
+    ledcWrite(i, 0);
+    delay(200);
+  }
+  
+  My_LCD.begin(20, 4);
+  My_LCD.clear();
+  My_LCD.setCursor(3,1);
+  My_LCD.print("ESP PING-MASTER");
+  My_LCD.setCursor(6,2);
+  My_LCD.print("by MRINAL");
+  delay(5000);
+  
+  connectingWifi(1, 0);
+  
+}
+
+void loop() 
+{
+  if(WiFi.status() == WL_CONNECTED)
+  {
+    My_LCD.clear();
+    wifiSignalQuality(16, 3);
+    ipCheck(0, 0);
+    udLink(18, 0, 1);
+    printLocalTime(0, 2);
+    remoteHost(0, 1);
+    pingTest();
+    printLocalTime(0, 2);
+    udLink(18, 0, 2);
+    delay(3000);
+    allOff();
+  }
+  else
+  {
+    connectingWifi(1, 0);
+  }
 }
