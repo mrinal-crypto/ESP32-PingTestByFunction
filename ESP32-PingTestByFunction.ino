@@ -108,16 +108,18 @@ void connectingWifi(int cWx, int cWy)
     
     while(!success) {
         ledcWrite(blueChannel, leddutyCycle);
-        wm.setConfigPortalTimeout(30);
+        
+        My_LCD.setCursor(cWx, cWy + 2);
+        My_LCD.print("AP - PING MASTER");
+        My_LCD.setCursor(cWx, cWy + 3);
+        My_LCD.print("SetupIP-192.168.4.1");
+        
+        wm.setConfigPortalTimeout(50);
         success = wm.autoConnect("PING MASTER");    
         if(!success){
           ledcWrite(blueChannel, 0);
           My_LCD.setCursor(cWx, cWy + 1);
           My_LCD.print("Failed!");
-          My_LCD.setCursor(cWx, cWy + 2);
-          My_LCD.print("AP - PING MASTER");
-          My_LCD.setCursor(cWx, cWy + 3);
-          My_LCD.print("SetupIP-192.168.4.1");
         }      
     } 
 
