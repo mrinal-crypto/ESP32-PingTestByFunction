@@ -79,7 +79,7 @@ float pingTime = 0;
 
 const int ledfreq = 5000;
 //const int buzfreq = 1000;
-const int leddutyCycle = 80;
+const int leddutyCycle = 30; //brightness
 //const int buzdutyCycle = 0;
 
 const int redChannel = 3;
@@ -103,7 +103,7 @@ void connectingWifi(int cWx, int cWy)
     My_LCD.setCursor(cWx, cWy);
     My_LCD.print("Connecting to WiFi");
     WiFi.disconnect();
-    
+    delay(50);
     bool success = false;
     
     while(!success) {
@@ -114,8 +114,8 @@ void connectingWifi(int cWx, int cWy)
         My_LCD.setCursor(cWx, cWy + 3);
         My_LCD.print("SetupIP-192.168.4.1");
         
-        wm.setConfigPortalTimeout(50);
-        success = wm.autoConnect("PING-MASTER");    
+        wm.setConfigPortalTimeout(60);
+        success = wm.autoConnect("ESP PING-MASTER");    
         if(!success){
           ledcWrite(blueChannel, 0);
           My_LCD.setCursor(cWx, cWy + 1);
@@ -139,6 +139,7 @@ void connectingWifi(int cWx, int cWy)
     ipCheck(1, 3);
     delay(5000);
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    delay(50);
 }
 
 void printLocalTime(int pLTx, int pLTy)
@@ -255,7 +256,9 @@ void pingTest()
 void setup() 
 {
 
-  Serial.begin(115200);
+//  Serial.begin(115200);
+
+  delay(50);
   
   pinMode(yellow, OUTPUT);//yellow
   pinMode(blue, OUTPUT);//green
@@ -278,10 +281,14 @@ void setup()
   ledcAttachPin(blue, blueChannel);
   ledcAttachPin(yellow, yellowChannel);
 //  ledcAttachPin(buz, buzChannel);
+
+  delay(50);
   
   digitalWrite(buz, HIGH);
-  delay(1000);
+  delay(2000);
   digitalWrite(buz, LOW);
+
+  delay(50);
   for(int i = 0; i<=3; i++)
   {
     ledcWrite(i, 250);
@@ -290,6 +297,7 @@ void setup()
     delay(200);
   }
   
+  delay(50);
   My_LCD.begin(20, 4);
   My_LCD.clear();
   My_LCD.setCursor(3,1);
