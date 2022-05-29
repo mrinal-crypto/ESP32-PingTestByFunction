@@ -79,7 +79,7 @@ float pingTime = 0;
 
 const int ledfreq = 5000;
 //const int buzfreq = 1000;
-const int leddutyCycle = 30; //brightness
+const int leddutyCycle = 120; //brightness
 //const int buzdutyCycle = 0;
 
 const int redChannel = 3;
@@ -201,6 +201,8 @@ void internetStatus(int iSx, int iSy, int iS)
 {
       if(iS == 1)
       {
+        ledcWrite(greenChannel, leddutyCycle);
+        ledcWrite(redChannel, 0);
         My_LCD.setCursor(iSx, iSy);
         My_LCD.print("Online ");
         //My_LCD.setCursor(iSx + 10, iSy);
@@ -209,6 +211,8 @@ void internetStatus(int iSx, int iSy, int iS)
       }
       if(iS == 2)
       {
+        ledcWrite(redChannel, leddutyCycle);
+        ledcWrite(greenChannel, 0);
         My_LCD.setCursor(iSx, iSy);
         My_LCD.print("No internet");
       }
