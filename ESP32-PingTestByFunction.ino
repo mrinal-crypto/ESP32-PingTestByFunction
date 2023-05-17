@@ -79,7 +79,8 @@ float pingTime = 0;
 
 const int ledfreq = 5000;
 //const int buzfreq = 1000;
-const int leddutyCycle = 120; //brightness
+const int leddutyCycle = 15; //brightness
+const int gLedOffset = 7;
 //const int buzdutyCycle = 0;
 
 const int redChannel = 3;
@@ -201,7 +202,7 @@ void internetStatus(int iSx, int iSy, int iS)
 {
       if(iS == 1)
       {
-        ledcWrite(greenChannel, leddutyCycle);
+        ledcWrite(greenChannel, leddutyCycle-gLedOffset);
         ledcWrite(redChannel, 0);
         My_LCD.setCursor(iSx, iSy);
         My_LCD.print("Online ");
@@ -245,7 +246,7 @@ void pingTest()
       flag = 0;
       flag2 = 1;
       processingSig(flag);
-      ledcWrite(greenChannel, leddutyCycle);
+      ledcWrite(greenChannel, leddutyCycle-gLedOffset);
     }
     else
     {  
@@ -262,7 +263,7 @@ void setup()
 
 //  Serial.begin(115200);
 
-  delay(50);
+//  delay(50);
   
   pinMode(yellow, OUTPUT);//yellow
   pinMode(blue, OUTPUT);//green
@@ -285,21 +286,21 @@ void setup()
   ledcAttachPin(blue, blueChannel);
   ledcAttachPin(yellow, yellowChannel);
 //  ledcAttachPin(buz, buzChannel);
-
-  delay(50);
-  
+//
+//  delay(50);
+//  
   digitalWrite(buz, HIGH);
   delay(2000);
   digitalWrite(buz, LOW);
 
-  delay(50);
-  for(int i = 0; i<=3; i++)
-  {
-    ledcWrite(i, 250);
-    delay(200);
-    ledcWrite(i, 0);
-    delay(200);
-  }
+//  delay(50);
+//  for(int i = 0; i<=3; i++)
+//  {
+//    ledcWrite(i, 250);
+//    delay(200);
+//    ledcWrite(i, 0);
+//    delay(200);
+//  }
   
   delay(50);
   My_LCD.begin(20, 4);
